@@ -162,7 +162,7 @@ export default async function DashboardPage() {
 
   // ─── Household AUM for radial chart ───
   const householdAumData = (households ?? []).slice(0, 5).map((h, i) => ({
-    name: h.name.length > 18 ? h.name.substring(0, 16) + "…" : h.name,
+    name: h.name,
     aum: Number(h.total_aum),
     fill: HOUSEHOLD_COLORS[i % HOUSEHOLD_COLORS.length],
   }))

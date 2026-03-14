@@ -16,6 +16,7 @@ import {
   MenuIcon,
   PieChartIcon,
   SearchIcon,
+  SettingsIcon,
   ShieldCheckIcon,
   TargetIcon,
   TrendingUpIcon,
@@ -42,6 +43,7 @@ const sidebarLinks = [
   { href: "/dashboard/compliance", label: "Compliance", icon: ShieldCheckIcon },
   { href: "/dashboard/pipeline", label: "Pipeline", icon: BriefcaseIcon },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3Icon },
+  { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ]
 
 type DashboardSidebarContentProps = {

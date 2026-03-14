@@ -259,16 +259,16 @@ export function PipelineStageChart({ data }: { data: PipelineStage[] }) {
 type HouseholdAum = { name: string; aum: number; fill: string }
 
 export function HouseholdAumChart({ data }: { data: HouseholdAum[] }) {
+  const max = data[0]?.aum ?? 1
   return (
     <div className="space-y-3">
       {data.map((item, i) => {
-        const max = data[0]?.aum ?? 1
         const pct = Math.round((item.aum / max) * 100)
         return (
           <div key={i}>
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">{item.name}</span>
-              <span className="text-sm font-semibold text-gray-900">{formatCompactCurrency(item.aum)}</span>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="truncate text-sm font-medium text-gray-700">{item.name}</span>
+              <span className="shrink-0 text-sm font-semibold text-gray-900">{formatCompactCurrency(item.aum)}</span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-gray-100">
               <div
@@ -283,57 +283,50 @@ export function HouseholdAumChart({ data }: { data: HouseholdAum[] }) {
   )
 }
 
-/* ───────────── 6. Task Status — Donut with center label ───────────── */
+/* ───────────── 6. Task Status — Bar-style breakdown ───────────── */
 
 type TaskStatusItem = { name: string; value: number; color: string }
 
 export function TaskStatusChart({ data }: { data: TaskStatusItem[] }) {
   const total = data.reduce((s, d) => s + d.value, 0)
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative h-48 w-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={80}
-              paddingAngle={4}
-              dataKey="value"
-              strokeWidth={0}
-            >
-              {data.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(value) => [tooltipNumber(value), "Tasks"]}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        {/* Center label */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-gray-900">{total}</span>
-          <span className="text-[11px] text-gray-500">Total Tasks</span>
-        </div>
-      </div>
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+    <div className="space-y-4">
+      {/* Stacked bar */}
+      <div className="flex h-5 w-full overflow-hidden rounded-full bg-gray-100">
         {data.map((item) => (
-          <div key={item.name} className="flex items-center gap-1.5">
-            <div className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-xs text-gray-600">{item.name}</span>
-            <span className="text-xs font-semibold text-gray-900">{item.value}</span>
+          <div
+            key={item.name}
+            className="h-full transition-all duration-500"
+            style={{ width: `${total > 0 ? (item.value / total) * 100 : 0}%`, backgroundColor: item.color }}
+          />
+        ))}
+      </div>
+      {/* Legend rows */}
+      <div className="space-y-2.5">
+        {data.map((item) => (
+          <div key={item.name} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="size-3 rounded-sm" style={{ backgroundColor: item.color }} />
+              <span className="text-sm text-gray-600">{item.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+              <span className="text-xs text-gray-400">({total > 0 ? Math.round((item.value / total) * 100) : 0}%)</span>
+            </div>
           </div>
         ))}
+      </div>
+      <div className="border-t border-gray-100 pt-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-500">Total</span>
+          <span className="text-sm font-bold text-gray-900">{total}</span>
+        </div>
       </div>
     </div>
   )
 }
 
-/* ───────────── 7. Compliance Health — Visual gauge ───────────── */
+/* ───────────── 7. Compliance Health — Score + breakdown ───────────── */
 
 type ComplianceGaugeData = {
   approved: number
@@ -345,7 +338,9 @@ type ComplianceGaugeData = {
 export function ComplianceGaugeChart({ data }: { data: ComplianceGaugeData }) {
   const total = data.approved + data.pending + data.inReview + data.flagged
   const healthPercent = total > 0 ? Math.round((data.approved / total) * 100) : 100
-  const gaugeColor = healthPercent >= 80 ? "#22c55e" : healthPercent >= 50 ? "#f59e0b" : "#ef4444"
+  const gaugeColor = healthPercent >= 80 ? "bg-emerald-500" : healthPercent >= 50 ? "bg-amber-500" : "bg-red-500"
+  const gaugeBg = healthPercent >= 80 ? "bg-emerald-50" : healthPercent >= 50 ? "bg-amber-50" : "bg-red-50"
+  const gaugeText = healthPercent >= 80 ? "text-emerald-700" : healthPercent >= 50 ? "text-amber-700" : "text-red-700"
 
   const statusItems = [
     { label: "Approved", value: data.approved, color: "#22c55e" },
@@ -355,35 +350,34 @@ export function ComplianceGaugeChart({ data }: { data: ComplianceGaugeData }) {
   ]
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      {/* Circular gauge using CSS */}
-      <div className="relative flex size-40 items-center justify-center">
-        <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" strokeWidth="10" />
-          <circle
-            cx="60"
-            cy="60"
-            r="50"
-            fill="none"
-            stroke={gaugeColor}
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={`${(healthPercent / 100) * 314} 314`}
-            className="transition-all duration-700"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-bold text-gray-900">{healthPercent}%</span>
-          <span className="text-[11px] text-gray-500">Health Score</span>
+    <div className="space-y-4">
+      {/* Score header */}
+      <div className={`flex items-center justify-between rounded-xl ${gaugeBg} p-4`}>
+        <div>
+          <p className={`text-3xl font-bold ${gaugeText}`}>{healthPercent}%</p>
+          <p className="text-xs text-gray-500">Health Score</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium text-gray-700">{data.approved}/{total}</p>
+          <p className="text-xs text-gray-500">Resolved</p>
         </div>
       </div>
-      {/* Status breakdown */}
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+      {/* Progress bar */}
+      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+        <div
+          className={`h-full rounded-full ${gaugeColor} transition-all duration-500`}
+          style={{ width: `${healthPercent}%` }}
+        />
+      </div>
+      {/* Status rows */}
+      <div className="space-y-2.5">
         {statusItems.map((item) => (
-          <div key={item.label} className="flex items-center gap-1.5">
-            <div className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-xs text-gray-600">{item.label}</span>
-            <span className="text-xs font-semibold text-gray-900">{item.value}</span>
+          <div key={item.label} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="size-3 rounded-sm" style={{ backgroundColor: item.color }} />
+              <span className="text-sm text-gray-600">{item.label}</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">{item.value}</span>
           </div>
         ))}
       </div>
