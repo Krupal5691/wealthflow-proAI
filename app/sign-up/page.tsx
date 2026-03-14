@@ -34,7 +34,7 @@ const benefits = [
     icon: LockIcon,
     title: "Ready for your first login",
     detail:
-      "Use your email and password to sign in immediately, or confirm by email if your project requires it.",
+      "Create your account and you'll be redirected to your dashboard instantly.",
   },
 ]
 

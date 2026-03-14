@@ -47,11 +47,6 @@ export function SignUpForm() {
 
     try {
       const supabase = createClient()
-      const emailRedirectTo = new URL("/sign-in", window.location.origin)
-
-      if (redirectTarget !== "/dashboard") {
-        emailRedirectTo.searchParams.set("redirect", redirectTarget)
-      }
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -60,7 +55,6 @@ export function SignUpForm() {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: emailRedirectTo.toString(),
         },
       })
 
@@ -85,9 +79,11 @@ export function SignUpForm() {
         return
       }
 
-      setSuccess(
-        "Account created. If email confirmation is enabled, check your inbox and then sign in.",
-      )
+      setSuccess("Account created successfully! Redirecting to your dashboard...")
+      startTransition(() => {
+        router.replace(redirectTarget)
+        router.refresh()
+      })
     } catch (submissionError) {
       setError(
         formatAuthError(
