@@ -726,7 +726,12 @@ export default function Home() {
                 <ArrowRightIcon className="ml-2 size-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="h-12 rounded-lg border-white/30 px-8 text-base text-white hover:bg-white/10 hover:text-white">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-12 rounded-lg border-white/35 bg-white/8 px-8 text-base font-semibold text-white shadow-none backdrop-blur-sm hover:border-white/55 hover:bg-white/14 hover:text-white"
+            >
               <Link href="#pricing">View Pricing</Link>
             </Button>
           </div>
