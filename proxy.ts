@@ -5,9 +5,12 @@ import { getSupabaseEnv } from "@/lib/env"
 
 export async function proxy(request: NextRequest) {
   const response = await updateSession(request)
+  const requiresAuth =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/client")
 
-  // Protect /dashboard routes — redirect to /sign-in if not authenticated
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
+  // Protect authenticated workspaces — redirect to /sign-in if not authenticated
+  if (requiresAuth) {
     const { url, anonKey } = getSupabaseEnv()
     const supabase = createServerClient(url, anonKey, {
       cookies: {

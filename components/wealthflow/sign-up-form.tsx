@@ -3,27 +3,31 @@
 import { type FormEvent, useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import {
+  AuthAccessSelector,
+  authAccessModeCopy,
+  getAuthRedirectTarget,
+  getDefaultAuthAccessMode,
+  type AuthAccessMode,
+} from "@/components/wealthflow/auth-access-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatAuthError } from "@/lib/supabase/auth-errors"
 import { createClient } from "@/lib/supabase/browser"
 
-function getRedirectTarget(redirect: string | null) {
-  if (!redirect || !redirect.startsWith("/")) {
-    return "/dashboard"
-  }
-
-  return redirect
-}
-
 export function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTarget = getRedirectTarget(searchParams.get("redirect"))
+  const requestedRedirect = searchParams.get("redirect")
+  const [accessMode, setAccessMode] = useState<AuthAccessMode>(
+    getDefaultAuthAccessMode(requestedRedirect),
+  )
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const redirectTarget = getAuthRedirectTarget(requestedRedirect, accessMode)
+  const selectedAccessMode = authAccessModeCopy[accessMode]
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -53,6 +57,7 @@ export function SignUpForm() {
         password,
         options: {
           data: {
+            account_type: accessMode,
             full_name: fullName,
           },
         },
@@ -71,7 +76,11 @@ export function SignUpForm() {
       form.reset()
 
       if (data.session) {
-        setSuccess("Account created. Redirecting to your dashboard...")
+        setSuccess(
+          accessMode === "investor"
+            ? "Account created. Opening the investor portal..."
+            : "Account created. Opening the advisor workspace...",
+        )
         startTransition(() => {
           router.replace(redirectTarget)
           router.refresh()
@@ -79,11 +88,7 @@ export function SignUpForm() {
         return
       }
 
-      setSuccess("Account created successfully! Redirecting to your dashboard...")
-      startTransition(() => {
-        router.replace(redirectTarget)
-        router.refresh()
-      })
+      setSuccess("Account created. Check the confirmation link in your email, then sign in.")
     } catch (submissionError) {
       setError(
         formatAuthError(
@@ -98,6 +103,13 @@ export function SignUpForm() {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
+      <AuthAccessSelector
+        accessMode={accessMode}
+        intent="sign-up"
+        onChange={setAccessMode}
+        requestedRedirect={requestedRedirect}
+      />
+
       <div className="space-y-2">
         <label
           className="text-sm font-medium text-[rgb(22,36,54)]"
@@ -124,7 +136,7 @@ export function SignUpForm() {
           id="email"
           name="email"
           type="email"
-          placeholder="advisor@wealthflow.pro"
+          placeholder={selectedAccessMode.emailPlaceholder}
           required
           autoComplete="email"
           className="h-11 bg-white"
@@ -184,10 +196,12 @@ export function SignUpForm() {
       <Button
         type="submit"
         size="lg"
-        className="w-full bg-[rgb(22,36,54)] text-white"
+        className="h-11 w-full bg-[rgb(22,36,54)] text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.85)]"
         disabled={isSubmitting || isPending}
       >
-        {isSubmitting || isPending ? "Creating account..." : "Create WealthFlow account"}
+        {isSubmitting || isPending
+          ? "Creating account..."
+          : `Create ${selectedAccessMode.title}`}
       </Button>
     </form>
   )

@@ -40,7 +40,73 @@ function timestampOffset(days: number, hour = 10, minute = 0) {
   return date.toISOString()
 }
 
-export function buildDemoWorkspace(userId: string, email: string | null, fullName: string | null) {
+function titleCaseWords(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ")
+}
+
+function deriveInvestorIdentity({
+  city,
+  email,
+  fullName,
+  phone,
+}: {
+  city?: string | null
+  email: string | null
+  fullName: string | null
+  phone?: string | null
+}) {
+  const normalizedEmail = email?.trim().toLowerCase() ?? null
+  const fallbackName =
+    normalizedEmail?.split("@")[0]?.replace(/[._-]+/g, " ") ?? "Demo Investor"
+  const normalizedName = titleCaseWords(fullName?.trim() || fallbackName)
+  const nameParts = normalizedName.split(/\s+/).filter(Boolean)
+  const firstName = nameParts[0] ?? "Demo"
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Investor"
+  const householdLabel = lastName !== "Investor" ? lastName : firstName
+  const householdName =
+    lastName !== "Investor" ? `${householdLabel} Family Office` : `${firstName} Household`
+
+  return {
+    city: city?.trim() || "Mumbai",
+    displayName: `${firstName} ${lastName}`.trim(),
+    email:
+      normalizedEmail ??
+      `${firstName.toLowerCase()}.${householdLabel.toLowerCase()}@example.com`,
+    firstName,
+    growthPortfolioName:
+      lastName !== "Investor"
+        ? `${householdLabel} Growth Portfolio`
+        : `${firstName} Growth Portfolio`,
+    householdName,
+    incomePortfolioName:
+      lastName !== "Investor"
+        ? `${householdLabel} Income Portfolio`
+        : `${firstName} Income Portfolio`,
+    lastName,
+    phone: phone?.trim() || "+91 98765 43210",
+    reviewSubjectLabel: lastName !== "Investor" ? householdLabel : `${firstName} Household`,
+  }
+}
+
+export function buildDemoWorkspace(
+  userId: string,
+  email: string | null,
+  fullName: string | null,
+  options?: {
+    city?: string | null
+    phone?: string | null
+  },
+) {
+  const investorIdentity = deriveInvestorIdentity({
+    city: options?.city,
+    email,
+    fullName,
+    phone: options?.phone,
+  })
   const accountPrefix = userId.replaceAll("-", "").slice(0, 6).toUpperCase()
   const householdIds = {
     iyer: seededUuid(userId, "household-iyer"),
@@ -80,12 +146,12 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
   }
 
   const profile: ProfileInsert = {
-    city: "Mumbai",
-    email,
-    full_name: fullName?.trim() || "Demo Advisor",
+    city: investorIdentity.city,
+    email: investorIdentity.email,
+    full_name: fullName?.trim() || investorIdentity.displayName,
     id: userId,
     organization_name: "WealthFlow Capital Advisors",
-    phone: "+91 98765 40000",
+    phone: options?.phone?.trim() || "+91 98765 40000",
     role: "advisor",
   }
 
@@ -93,11 +159,11 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
     {
       advisor_id: userId,
       id: householdIds.patel,
-      name: "Patel Family Office",
+      name: investorIdentity.householdName,
       next_review_date: dateOffset(14),
-      notes: "Multi-generational family office focused on long-term wealth compounding.",
+      notes: `Primary investor household for ${investorIdentity.displayName}, focused on diversified long-term wealth compounding.`,
       risk_profile: "Balanced Growth",
-      segment: "UHNI",
+      segment: "HNI",
       status: "active",
       total_aum: 92_000_000,
     },
@@ -149,32 +215,32 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
 
   const clients: ClientInsert[] = [
     {
-      city: "Ahmedabad",
+      city: investorIdentity.city,
       date_of_birth: "1974-08-12",
-      email: "rajesh.patel@example.com",
-      first_name: "Rajesh",
+      email: investorIdentity.email,
+      first_name: investorIdentity.firstName,
       household_id: householdIds.patel,
       id: clientIds.rajeshPatel,
       kyc_status: "verified",
-      last_name: "Patel",
+      last_name: investorIdentity.lastName,
       onboarding_stage: "active",
       owner_id: userId,
       pan_number: "ABCPD1234E",
-      phone: "+91 98765 43210",
+      phone: investorIdentity.phone,
     },
     {
-      city: "Ahmedabad",
+      city: investorIdentity.city,
       date_of_birth: "1978-02-19",
-      email: "meena.patel@example.com",
-      first_name: "Meena",
+      email: null,
+      first_name: "Household",
       household_id: householdIds.patel,
       id: clientIds.meenaPatel,
       kyc_status: "verified",
-      last_name: "Patel",
+      last_name: "Member",
       onboarding_stage: "active",
       owner_id: userId,
       pan_number: "ABCPD1235F",
-      phone: "+91 98765 43211",
+      phone: null,
     },
     {
       city: "Chennai",
@@ -268,7 +334,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       household_id: householdIds.patel,
       id: portfolioIds.patelGrowth,
       liquidity_ratio: 17.24,
-      name: "Patel Growth Portfolio",
+      name: investorIdentity.growthPortfolioName,
       objective: "Long-term capital appreciation",
       performance_ytd: 14.2,
       total_value: 58_000_000,
@@ -279,7 +345,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       household_id: householdIds.patel,
       id: portfolioIds.patelIncome,
       liquidity_ratio: 11.76,
-      name: "Patel Fixed Income",
+      name: investorIdentity.incomePortfolioName,
       objective: "Stable income generation",
       performance_ytd: 8.5,
       total_value: 34_000_000,
@@ -810,7 +876,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       owner_id: userId,
       priority: "high",
       status: "todo",
-      title: "Complete KYC refresh for Patel Family Office",
+      title: `Complete KYC refresh for ${investorIdentity.householdName}`,
     },
     {
       category: "advisory",
@@ -890,7 +956,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
     {
       completed_at: null,
       due_at: dateOffset(5),
-      finding: "Patel household has an expiring suitability questionnaire.",
+      finding: `${investorIdentity.householdName} has an expiring suitability questionnaire.`,
       household_id: householdIds.patel,
       id: seededUuid(userId, "compliance-patel-suitability"),
       owner_id: userId,
@@ -1084,7 +1150,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       probability: 74,
       stage: "commitment",
       target_close_date: dateOffset(5),
-      title: "Patel Offshore Allocation",
+      title: `${investorIdentity.reviewSubjectLabel} Strategic Allocation`,
     },
     {
       expected_value: 24_000_000,
@@ -1117,12 +1183,12 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       ends_at: timestampOffset(3, 12, 0),
       household_id: householdIds.patel,
       id: seededUuid(userId, "meeting-patel-review"),
-      location: "Patel Family Office, Ahmedabad",
+      location: `${investorIdentity.householdName}, ${investorIdentity.city}`,
       meeting_type: "review",
       notes: "Review Q1 performance and discuss rebalancing.",
       owner_id: userId,
       starts_at: timestampOffset(3, 11, 0),
-      subject: "Quarterly Portfolio Review - Patel",
+      subject: `Quarterly Portfolio Review - ${investorIdentity.reviewSubjectLabel}`,
     },
     {
       ends_at: timestampOffset(5, 16, 30),
@@ -1179,7 +1245,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       id: seededUuid(userId, "document-rajesh-kyc"),
       signed: true,
       storage_path: null,
-      title: "Rajesh Patel - KYC Documents",
+      title: `${investorIdentity.displayName} - KYC Documents`,
       uploaded_by: userId,
       version_label: "v2",
     },
@@ -1191,7 +1257,7 @@ export function buildDemoWorkspace(userId: string, email: string | null, fullNam
       id: seededUuid(userId, "document-meena-pan"),
       signed: true,
       storage_path: null,
-      title: "Meena Patel - PAN Card",
+      title: "Household Member - Identity Pack",
       uploaded_by: userId,
       version_label: "v1",
     },

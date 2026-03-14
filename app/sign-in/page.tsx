@@ -20,7 +20,7 @@ const benefits = [
   {
     icon: TrendingUpIcon,
     title: "Real-Time Portfolio Tracking",
-    detail: "Monitor AUM, performance, and asset allocation across all your client accounts in one dashboard.",
+    detail: "Monitor AUM, performance, and asset allocation across every household in one dashboard.",
   },
   {
     icon: ShieldCheckIcon,
@@ -60,11 +60,12 @@ export default async function SignInPage() {
         <div className="space-y-8">
           <div>
             <h2 className="text-3xl font-bold leading-tight">
-              The smarter way to manage wealth.
+              One sign-in for advisory teams and investors.
             </h2>
             <p className="mt-3 max-w-md text-base leading-7 text-blue-100/80">
-              Join hundreds of financial advisors across India who use WealthFlow
-              Pro to grow their practice and delight their clients.
+              Access the advisor workspace for operations and portfolio reviews,
+              or open the investor portal for household updates, documents, and
+              meeting visibility.
             </p>
           </div>
 
@@ -112,11 +113,12 @@ export default async function SignInPage() {
             </Link>
           </div>
 
-          <Card className="border-gray-200 bg-white shadow-lg">
+          <Card className="overflow-hidden border-gray-200 bg-white shadow-[0_24px_80px_-32px_rgba(15,23,42,0.45)]">
+            <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-700" />
             <CardHeader>
               <CardTitle className="text-2xl text-gray-900">Welcome back</CardTitle>
               <CardDescription className="text-gray-500">
-                Sign in to access your wealth management dashboard.
+                Choose your access mode and continue to WealthFlow.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

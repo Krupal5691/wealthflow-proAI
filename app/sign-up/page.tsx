@@ -20,9 +20,9 @@ import { createClient } from "@/lib/supabase/server"
 const benefits = [
   {
     icon: TrendingUpIcon,
-    title: "Launch your advisor workspace",
+    title: "Launch the right access path",
     detail:
-      "Create an account and start managing clients, portfolios, and operations from one place.",
+      "Create an advisor workspace for operations or investor portal access for household visibility.",
   },
   {
     icon: ShieldCheckIcon,
@@ -32,9 +32,9 @@ const benefits = [
   },
   {
     icon: LockIcon,
-    title: "Ready for your first login",
+    title: "Ready for your first session",
     detail:
-      "Create your account and you'll be redirected to your dashboard instantly.",
+      "When instant sign-in is enabled, WealthFlow opens the matching workspace immediately after signup.",
   },
 ]
 
@@ -63,11 +63,12 @@ export default async function SignUpPage() {
         <div className="space-y-8">
           <div>
             <h2 className="text-3xl font-bold leading-tight">
-              Create your WealthFlow workspace.
+              Create your advisor or investor access.
             </h2>
             <p className="mt-3 max-w-md text-base leading-7 text-blue-100/80">
-              Sign up with email and password to start using the product without
-              manual user creation in the Supabase dashboard.
+              Choose the right entry point, create an account with email and
+              password, and start using WealthFlow without manual user creation
+              in Supabase.
             </p>
           </div>
 
@@ -114,15 +115,16 @@ export default async function SignUpPage() {
             </Link>
           </div>
 
-          <Card className="border-gray-200 bg-white shadow-lg">
+          <Card className="overflow-hidden border-gray-200 bg-white shadow-[0_24px_80px_-32px_rgba(15,23,42,0.45)]">
+            <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-700" />
             <CardHeader>
               <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                 <UserPlusIcon className="size-5" />
               </div>
               <CardTitle className="text-2xl text-gray-900">Create account</CardTitle>
               <CardDescription className="text-gray-500">
-                Start with your email and password. We&apos;ll create your
-                WealthFlow profile automatically.
+                Choose your access mode, create an account, and we&apos;ll set up
+                your WealthFlow profile automatically.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

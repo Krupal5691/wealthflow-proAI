@@ -3,27 +3,31 @@
 import { type FormEvent, useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import {
+  AuthAccessSelector,
+  authAccessModeCopy,
+  getAuthRedirectTarget,
+  getDefaultAuthAccessMode,
+  type AuthAccessMode,
+} from "@/components/wealthflow/auth-access-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatAuthError } from "@/lib/supabase/auth-errors"
 import { createClient } from "@/lib/supabase/browser"
 
-function getRedirectTarget(redirect: string | null) {
-  if (!redirect || !redirect.startsWith("/")) {
-    return "/dashboard"
-  }
-
-  return redirect
-}
-
 export function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTarget = getRedirectTarget(searchParams.get("redirect"))
+  const requestedRedirect = searchParams.get("redirect")
+  const [accessMode, setAccessMode] = useState<AuthAccessMode>(
+    getDefaultAuthAccessMode(requestedRedirect),
+  )
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const redirectTarget = getAuthRedirectTarget(requestedRedirect, accessMode)
+  const selectedAccessMode = authAccessModeCopy[accessMode]
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -48,13 +52,17 @@ export function SignInForm() {
         setError(
           formatAuthError(
             signInError,
-            "Unable to sign in right now. Please try again.",
+            "Unable to sign in right now. Please check your credentials and try again.",
           ),
         )
         return
       }
 
-      setSuccess("Authentication succeeded. Redirecting to the dashboard...")
+      setSuccess(
+        accessMode === "investor"
+          ? "Sign-in succeeded. Opening the investor portal..."
+          : "Sign-in succeeded. Opening the advisor workspace...",
+      )
       form.reset()
 
       startTransition(() => {
@@ -65,7 +73,7 @@ export function SignInForm() {
       setError(
         formatAuthError(
           submissionError,
-          "Unable to sign in right now. Please try again.",
+          "Unable to sign in right now. Please check your credentials and try again.",
         ),
       )
     } finally {
@@ -75,6 +83,13 @@ export function SignInForm() {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
+      <AuthAccessSelector
+        accessMode={accessMode}
+        intent="sign-in"
+        onChange={setAccessMode}
+        requestedRedirect={requestedRedirect}
+      />
+
       <div className="space-y-2">
         <label className="text-sm font-medium text-[rgb(22,36,54)]" htmlFor="email">
           Email
@@ -83,7 +98,7 @@ export function SignInForm() {
           id="email"
           name="email"
           type="email"
-          placeholder="advisor@wealthflow.pro"
+          placeholder={selectedAccessMode.emailPlaceholder}
           required
           autoComplete="email"
           className="h-11 bg-white"
@@ -123,10 +138,12 @@ export function SignInForm() {
       <Button
         type="submit"
         size="lg"
-        className="w-full bg-[rgb(22,36,54)] text-white"
+        className="h-11 w-full bg-[rgb(22,36,54)] text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.85)]"
         disabled={isSubmitting || isPending}
       >
-        {isSubmitting || isPending ? "Signing in..." : "Sign in to WealthFlow Pro"}
+        {isSubmitting || isPending
+          ? "Signing in..."
+          : `Open ${selectedAccessMode.title}`}
       </Button>
     </form>
   )

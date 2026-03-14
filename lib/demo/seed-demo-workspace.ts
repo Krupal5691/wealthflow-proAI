@@ -14,7 +14,32 @@ export async function seedDemoWorkspaceForUser({
   userId: string
 }) {
   const supabase = await createClient()
-  const demoWorkspace = buildDemoWorkspace(userId, email, fullName)
+  const { data: existingProfile, error: profileLookupError } = await supabase
+    .from("profiles")
+    .select("city, email, full_name, organization_name, phone, role")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (profileLookupError) {
+    return { error: formatSupabaseActionError(profileLookupError) }
+  }
+
+  const effectiveEmail = email ?? existingProfile?.email ?? null
+  const effectiveFullName = fullName?.trim() || existingProfile?.full_name || null
+  const demoWorkspace = buildDemoWorkspace(userId, effectiveEmail, effectiveFullName, {
+    city: existingProfile?.city ?? null,
+    phone: existingProfile?.phone ?? null,
+  })
+  demoWorkspace.profile = {
+    ...demoWorkspace.profile,
+    city: existingProfile?.city ?? demoWorkspace.profile.city,
+    email: effectiveEmail ?? demoWorkspace.profile.email,
+    full_name: effectiveFullName ?? demoWorkspace.profile.full_name,
+    organization_name:
+      existingProfile?.organization_name ?? demoWorkspace.profile.organization_name,
+    phone: existingProfile?.phone ?? demoWorkspace.profile.phone,
+    role: existingProfile?.role ?? demoWorkspace.profile.role,
+  }
 
   const { error: profileError } = await supabase
     .from("profiles")

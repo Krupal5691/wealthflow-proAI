@@ -122,7 +122,7 @@ const solutions = [
       "Multi-advisor team management and permissions",
       "Firm-wide AUM and revenue dashboards",
       "Centralized compliance and audit management",
-      "White-label client portal and reporting",
+      "White-label investor portal and reporting",
     ],
   },
   {
@@ -201,7 +201,7 @@ const pricingPlans = [
       "Priority support",
       "SEBI compliance suite",
       "Custom reporting & dashboards",
-      "Client portal access",
+      "Investor portal access",
       "API integrations",
     ],
     cta: "Start Free Trial",
@@ -215,7 +215,7 @@ const pricingPlans = [
     features: [
       "Unlimited client profiles",
       "AI-powered recommendations",
-      "White-label client portal",
+      "White-label investor portal",
       "Dedicated account manager",
       "Custom integrations",
       "Advanced analytics & BI",
@@ -251,12 +251,27 @@ const testimonials = [
   },
 ]
 
-const footerLinks = {
-  Product: ["Features", "Solutions", "Platform", "Pricing", "Security"],
-  Company: ["About Us", "Careers", "Blog", "Press", "Contact"],
-  Resources: ["Documentation", "API Reference", "Webinars", "Case Studies", "Help Center"],
-  Legal: ["Privacy Policy", "Terms of Service", "Cookie Policy", "SEBI Compliance"],
-}
+const footerSections = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "#features" },
+      { label: "Solutions", href: "#solutions" },
+      { label: "Platform", href: "#platform" },
+      { label: "Pricing", href: "#pricing" },
+    ],
+  },
+  {
+    title: "Access",
+    links: [
+      { label: "Create Account", href: "/sign-up" },
+      { label: "Sign In", href: "/sign-in" },
+      { label: "Investor Portal", href: "/client" },
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Reports", href: "/dashboard/reports" },
+    ],
+  },
+]
 
 /* ───────────────────────── PAGE ───────────────────────── */
 
@@ -724,7 +739,7 @@ export default function Home() {
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-gray-100 bg-gray-50 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+          <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr]">
             <div>
               <Link href="/" className="flex items-center gap-2.5">
                 <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700">
@@ -759,14 +774,17 @@ export default function Home() {
               </div>
             </div>
 
-            {Object.entries(footerLinks).map(([category, links]) => (
-              <div key={category}>
-                <h4 className="text-sm font-semibold text-gray-900">{category}</h4>
+            {footerSections.map((section) => (
+              <div key={section.title}>
+                <h4 className="text-sm font-semibold text-gray-900">{section.title}</h4>
                 <ul className="mt-4 space-y-3">
-                  {links.map((link) => (
-                    <li key={link}>
-                      <Link href="#" className="text-sm text-gray-500 transition-colors hover:text-gray-900">
-                        {link}
+                  {section.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                      >
+                        {link.label}
                       </Link>
                     </li>
                   ))}
@@ -780,7 +798,7 @@ export default function Home() {
               &copy; 2026 WealthFlow Pro. All rights reserved.
             </p>
             <p className="text-sm text-gray-400">
-              SEBI Registered | ISO 27001 Certified | SOC 2 Type II
+              Built for modern wealth-management workflows in India.
             </p>
           </div>
         </div>
