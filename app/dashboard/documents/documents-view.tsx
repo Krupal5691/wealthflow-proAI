@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { ExternalLinkIcon, FileTextIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ExternalLinkIcon, FileCheckIcon, FileIcon, FileTextIcon, FolderOpenIcon, LockIcon, ShieldIcon, Trash2Icon, UploadIcon, UsersIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,6 +73,30 @@ const classificationTone: Record<string, string> = {
   internal: "bg-amber-50 text-amber-700 border-amber-200",
   client_shared: "bg-blue-50 text-blue-700 border-blue-200",
   archive: "bg-gray-50 text-gray-600 border-gray-200",
+}
+
+const docTypeIcon: Record<string, typeof FileTextIcon> = {
+  "KYC Document": FileCheckIcon,
+  "Investment Policy Statement": FileTextIcon,
+  "Portfolio Review": FileTextIcon,
+  "Fee Disclosure": FileTextIcon,
+  "Mandate Form": FileCheckIcon,
+  "Risk Profile Assessment": FileTextIcon,
+  "Signed Agreement": FileCheckIcon,
+  "Tax Statement": FileTextIcon,
+  "Other": FileIcon,
+}
+
+const docTypeIconColor: Record<string, string> = {
+  "KYC Document": "bg-emerald-50 text-emerald-600",
+  "Investment Policy Statement": "bg-blue-50 text-blue-600",
+  "Portfolio Review": "bg-purple-50 text-purple-600",
+  "Fee Disclosure": "bg-amber-50 text-amber-600",
+  "Mandate Form": "bg-indigo-50 text-indigo-600",
+  "Risk Profile Assessment": "bg-orange-50 text-orange-600",
+  "Signed Agreement": "bg-emerald-50 text-emerald-600",
+  "Tax Statement": "bg-slate-50 text-slate-600",
+  "Other": "bg-gray-50 text-gray-500",
 }
 
 function getClientLabel(client: DocumentRow["clients"]) {
@@ -173,8 +197,8 @@ export function DocumentsView({
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">
-              <PlusIcon className="mr-1.5 size-4" /> Upload Document
+            <Button className="bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md transition-all">
+              <UploadIcon className="mr-1.5 size-4" /> Upload Document
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-xl">
@@ -297,62 +321,99 @@ export function DocumentsView({
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-gray-200 border-l-4 border-l-blue-500 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
-            <CardDescription>Total Documents</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">{documents.length}</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                <FileTextIcon className="size-5" />
+              </div>
+              <div>
+                <CardDescription>Total Documents</CardDescription>
+                <CardTitle className="text-3xl text-gray-900">{documents.length}</CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-gray-200 border-l-4 border-l-emerald-500 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
-            <CardDescription>Signed Documents</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.signedCount}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                <FileCheckIcon className="size-5" />
+              </div>
+              <div>
+                <CardDescription>Signed Documents</CardDescription>
+                <CardTitle className="text-3xl text-emerald-600">
+                  {summary.signedCount}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-gray-200 border-l-4 border-l-purple-500 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
-            <CardDescription>Linked to Households</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.linkedToHousehold}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                <UsersIcon className="size-5" />
+              </div>
+              <div>
+                <CardDescription>Linked to Households</CardDescription>
+                <CardTitle className="text-3xl text-purple-600">
+                  {summary.linkedToHousehold}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-gray-200 border-l-4 border-l-red-500 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
-            <CardDescription>Confidential</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.confidentialCount}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                <LockIcon className="size-5" />
+              </div>
+              <div>
+                <CardDescription>Confidential</CardDescription>
+                <CardTitle className="text-3xl text-red-600">
+                  {summary.confidentialCount}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {[
           { id: "all", label: "All" },
           { id: "signed", label: "Signed" },
           { id: "unsigned", label: "Unsigned" },
-        ].map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setFilter(item.id as "all" | "signed" | "unsigned")}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              filter === item.id
-                ? "bg-blue-50 text-blue-700"
-                : "text-gray-500 hover:bg-gray-100"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+        ].map((item) => {
+          const isActive = filter === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setFilter(item.id as "all" | "signed" | "unsigned")}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
+                isActive
+                  ? item.id === "signed"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : item.id === "unsigned"
+                      ? "bg-amber-600 text-white shadow-sm"
+                      : "bg-gray-800 text-white shadow-sm"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              {item.label}
+            </button>
+          )
+        })}
+
+        <div className="mx-1 h-6 w-px bg-gray-200" />
 
         <select
           value={classificationFilter}
           onChange={(event) => setClassificationFilter(event.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600"
+          className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
         >
           <option value="all">All classifications</option>
           <option value="confidential">Confidential</option>
@@ -370,102 +431,119 @@ export function DocumentsView({
       ) : null}
 
       {filteredDocuments.length > 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Household</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Classification</TableHead>
-                <TableHead>Version</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead className="w-28">Actions</TableHead>
+              <TableRow className="bg-gray-50/80">
+                <TableHead className="font-semibold">Document</TableHead>
+                <TableHead className="font-semibold">Household</TableHead>
+                <TableHead className="font-semibold">Client</TableHead>
+                <TableHead className="font-semibold">Classification</TableHead>
+                <TableHead className="font-semibold">Version</TableHead>
+                <TableHead className="font-semibold">Uploaded</TableHead>
+                <TableHead className="w-28 font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocuments.map((document) => (
-                <TableRow key={document.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                        <FileTextIcon className="size-4" />
+              {filteredDocuments.map((document) => {
+                const DocIcon = docTypeIcon[document.document_type] ?? FileIcon
+                const iconColor = docTypeIconColor[document.document_type] ?? "bg-gray-50 text-gray-500"
+
+                return (
+                  <TableRow key={document.id} className="group/row hover:bg-gray-50/50 transition-colors">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className={`flex size-9 items-center justify-center rounded-lg ${iconColor}`}>
+                          <DocIcon className="size-4" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{document.title}</p>
+                          <p className="text-xs text-gray-400">{document.document_type}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{document.title}</p>
-                        <p className="text-xs text-gray-400">{document.document_type}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {document.households?.name ?? "-"}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {getClientLabel(document.clients)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs capitalize ${
-                        classificationTone[document.classification ?? ""] ?? ""
-                      }`}
-                    >
-                      {(document.classification ?? "unclassified").replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm font-medium text-gray-900">
-                        {document.version_label}
-                      </span>
-                      <span
-                        className={`text-xs ${
-                          document.signed ? "text-emerald-600" : "text-gray-400"
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {document.households?.name ?? <span className="text-gray-300">-</span>}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {getClientLabel(document.clients) === "-" ? <span className="text-gray-300">-</span> : getClientLabel(document.clients)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs capitalize ${
+                          classificationTone[document.classification ?? ""] ?? "bg-gray-50 text-gray-500 border-gray-200"
                         }`}
                       >
-                        {document.signed ? "Signed" : "Unsigned"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {new Date(document.uploaded_at).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {document.download_url ? (
-                        <a
-                          href={document.download_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-md p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-700"
+                        {document.classification === "confidential" && <LockIcon className="mr-1 size-3" />}
+                        {document.classification === "client_shared" && <ShieldIcon className="mr-1 size-3" />}
+                        {(document.classification ?? "unclassified").replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium text-gray-900">
+                          {document.version_label}
+                        </span>
+                        <span
+                          className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            document.signed
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
+                              : "bg-gray-50 text-gray-500 ring-1 ring-inset ring-gray-200"
+                          }`}
                         >
-                          <ExternalLinkIcon className="size-4" />
-                        </a>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(document.id)}
-                        disabled={deletingId === document.id}
-                        className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                      >
-                        <Trash2Icon className="size-4" />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                          {document.signed ? "Signed" : "Unsigned"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {new Date(document.uploaded_at).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {document.download_url ? (
+                          <a
+                            href={document.download_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          >
+                            <ExternalLinkIcon className="size-4" />
+                          </a>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(document.id)}
+                          disabled={deletingId === document.id}
+                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2Icon className="size-4" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <p className="text-gray-500">
-            No documents found. Upload a file to start building the document vault.
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+              <FolderOpenIcon className="size-6" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-500">No documents found</p>
+              <p className="mt-1 text-sm text-gray-400">
+                Upload a file to start building the document vault.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

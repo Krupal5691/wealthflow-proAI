@@ -1,15 +1,22 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { PencilIcon, PlusIcon, Trash2Icon, WalletIcon } from "lucide-react"
+import {
+  CalendarIcon,
+  HomeIcon,
+  LandmarkIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+  UsersIcon,
+  WalletIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import {
   Dialog,
@@ -50,6 +57,13 @@ const statusTone: Record<string, string> = {
   prospect: "bg-blue-50 text-blue-700 border-blue-200",
   review_due: "bg-amber-50 text-amber-700 border-amber-200",
   inactive: "bg-gray-50 text-gray-600 border-gray-200",
+}
+
+const segmentTone: Record<string, string> = {
+  hnw: "bg-violet-50 text-violet-700 border-violet-200",
+  uhnw: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  mass_affluent: "bg-blue-50 text-blue-700 border-blue-200",
+  retail: "bg-gray-50 text-gray-600 border-gray-200",
 }
 
 function isReviewDue(nextReviewDate: string | null) {
@@ -118,7 +132,7 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">
+            <Button className="bg-blue-600 text-white shadow-sm hover:bg-blue-700">
               <PlusIcon className="mr-1.5 size-4" /> Add Household
             </Button>
           </DialogTrigger>
@@ -155,66 +169,95 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
         </DialogContent>
       </Dialog>
 
+      {/* Summary stat cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-l-blue-500 border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <CardDescription>Total Households</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {households.length}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Households</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">
+                  {households.length}
+                </p>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50">
+                <HomeIcon className="size-5 text-blue-600" />
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-l-emerald-500 border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <CardDescription>Total AUM</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {formatCompactCurrency(summary.totalAum)}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total AUM</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">
+                  {formatCompactCurrency(summary.totalAum)}
+                </p>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50">
+                <LandmarkIcon className="size-5 text-emerald-600" />
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-l-violet-500 border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <CardDescription>Active Relationships</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.activeCount}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Active Relationships</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">
+                  {summary.activeCount}
+                </p>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-xl bg-violet-50">
+                <UsersIcon className="size-5 text-violet-600" />
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-l-amber-500 border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <CardDescription>Reviews Due in 30 Days</CardDescription>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.reviewDueCount}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Reviews Due in 30 Days</p>
+                <p className="mt-1 text-3xl font-bold text-gray-900">
+                  {summary.reviewDueCount}
+                </p>
+              </div>
+              <div className="flex size-11 items-center justify-center rounded-xl bg-amber-50">
+                <CalendarIcon className="size-5 text-amber-600" />
+              </div>
+            </div>
           </CardHeader>
         </Card>
       </div>
 
       {households.length > 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Household</TableHead>
-                <TableHead>Segment</TableHead>
-                <TableHead>AUM</TableHead>
-                <TableHead>Risk</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Next Review</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="w-20">Actions</TableHead>
+              <TableRow className="bg-gray-50/60 hover:bg-gray-50/60">
+                <TableHead className="pl-4 font-semibold text-gray-700">Household</TableHead>
+                <TableHead className="font-semibold text-gray-700">Segment</TableHead>
+                <TableHead className="font-semibold text-gray-700">AUM</TableHead>
+                <TableHead className="font-semibold text-gray-700">Risk</TableHead>
+                <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                <TableHead className="font-semibold text-gray-700">Next Review</TableHead>
+                <TableHead className="font-semibold text-gray-700">Notes</TableHead>
+                <TableHead className="w-20 font-semibold text-gray-700">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {households.map((household) => (
-                <TableRow key={household.id}>
-                  <TableCell>
+                <TableRow key={household.id} className="hover:bg-gray-50/50 transition-colors">
+                  <TableCell className="pl-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                      <div className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 ring-1 ring-blue-200/50">
                         <WalletIcon className="size-4" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-semibold text-gray-900">
                           {household.name}
                         </p>
                         <p className="text-xs text-gray-400">
@@ -231,14 +274,25 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-600">
-                    {household.segment}
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs capitalize ${
+                        segmentTone[household.segment] ?? "bg-gray-50 text-gray-600 border-gray-200"
+                      }`}
+                    >
+                      {household.segment.replace("_", " ")}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="font-medium text-gray-900">
+                  <TableCell className="font-semibold tabular-nums text-gray-900">
                     {formatCompactCurrency(Number(household.total_aum))}
                   </TableCell>
-                  <TableCell className="text-gray-600">
-                    {household.risk_profile ?? "Not set"}
+                  <TableCell>
+                    <span className="text-sm text-gray-600">
+                      {household.risk_profile ?? (
+                        <span className="italic text-gray-400">Not set</span>
+                      )}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -250,23 +304,33 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
                       {household.status.replace("_", " ")}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-600">
-                    {household.next_review_date
-                      ? new Date(household.next_review_date).toLocaleDateString(
+                  <TableCell>
+                    {household.next_review_date ? (
+                      <span
+                        className={`text-sm ${
+                          isReviewDue(household.next_review_date)
+                            ? "font-medium text-amber-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {new Date(household.next_review_date).toLocaleDateString(
                           "en-IN",
                           {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
                           },
-                        )
-                      : "-"}
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="max-w-xs text-sm text-gray-500">
                     {household.notes ? (
                       <span className="line-clamp-2">{household.notes}</span>
                     ) : (
-                      "-"
+                      <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -274,7 +338,7 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
                       <button
                         type="button"
                         onClick={() => setEditHousehold(household)}
-                        className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                       >
                         <PencilIcon className="size-4" />
                       </button>
@@ -282,7 +346,7 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
                         type="button"
                         onClick={() => handleDelete(household.id)}
                         disabled={deletingId === household.id}
-                        className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                        className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                       >
                         <Trash2Icon className="size-4" />
                       </button>
@@ -294,11 +358,21 @@ export function HouseholdsView({ households }: { households: HouseholdRow[] }) {
           </Table>
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <p className="text-gray-500">
-            No households yet. Create your first relationship group to unlock
-            clients, portfolios, tasks, and pipeline.
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white py-16">
+          <div className="flex size-12 items-center justify-center rounded-full bg-gray-50">
+            <HomeIcon className="size-6 text-gray-300" />
+          </div>
+          <h3 className="mt-4 text-sm font-semibold text-gray-900">No households yet</h3>
+          <p className="mt-1 max-w-sm text-center text-sm text-gray-500">
+            Create your first relationship group to unlock clients, portfolios,
+            tasks, and pipeline.
           </p>
+          <Button
+            onClick={() => setAddOpen(true)}
+            className="mt-4 bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+          >
+            <PlusIcon className="mr-1.5 size-4" /> Add Household
+          </Button>
         </div>
       )}
     </div>

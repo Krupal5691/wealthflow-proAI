@@ -18,6 +18,7 @@ import {
   TaskStatusChart,
   ComplianceGaugeChart,
 } from "@/components/wealthflow/dashboard-charts"
+import { seedDemoWorkspaceForUser } from "@/lib/demo/seed-demo-workspace"
 import { SchemaSetupRequired } from "@/components/wealthflow/schema-setup-required"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -58,6 +59,43 @@ const stageLabels: Record<string, string> = {
 
 const HOUSEHOLD_COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#06b6d4", "#10b981"]
 
+async function fetchDashboardWorkspace(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const [
+    { data: households, error: householdsError },
+    { data: clients, error: clientsError },
+    { data: allTasks, error: tasksError },
+    { data: complianceRecords, error: complianceRecordsError },
+    { data: opportunities, error: opportunitiesError },
+    { data: portfolios, error: portfoliosError },
+    { data: holdings, error: holdingsError },
+  ] = await Promise.all([
+    supabase.from("households").select("*").order("total_aum", { ascending: false }),
+    supabase.from("clients").select("*"),
+    supabase.from("tasks").select("*"),
+    supabase.from("compliance_records").select("*"),
+    supabase.from("opportunities").select("*").order("expected_value", { ascending: false }),
+    supabase.from("portfolios").select("*").order("total_value", { ascending: false }),
+    supabase.from("holdings").select("*"),
+  ])
+
+  return {
+    allTasks: allTasks ?? [],
+    clients: clients ?? [],
+    clientsError,
+    complianceRecords: complianceRecords ?? [],
+    complianceRecordsError,
+    holdings: holdings ?? [],
+    holdingsError,
+    households: households ?? [],
+    householdsError,
+    opportunities: opportunities ?? [],
+    opportunitiesError,
+    portfolios: portfolios ?? [],
+    portfoliosError,
+    tasksError,
+  }
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const {
@@ -69,38 +107,58 @@ export default async function DashboardPage() {
     user?.email?.split("@")[0]?.replace(/[._-]/g, " ") ??
     "Advisor"
 
-  // Fetch real data from Supabase
-  const [
-    { data: households, error: householdsError },
-    { data: clients, error: clientsError },
-    { data: allTasks, error: tasksError },
-    { data: complianceRecords, error: complianceRecordsError },
-    { data: opportunities, error: opportunitiesError },
-    { data: portfolios },
-    { data: holdings },
-  ] = await Promise.all([
-    supabase.from("households").select("*").order("total_aum", { ascending: false }),
-    supabase.from("clients").select("*"),
-    supabase.from("tasks").select("*"),
-    supabase.from("compliance_records").select("*"),
-    supabase.from("opportunities").select("*").order("expected_value", { ascending: false }),
-    supabase.from("portfolios").select("*").order("total_value", { ascending: false }),
-    supabase.from("holdings").select("*"),
-  ])
+  let workspace = await fetchDashboardWorkspace(supabase)
 
   if (
     hasMissingSchemaError([
-      householdsError,
-      clientsError,
-      tasksError,
-      complianceRecordsError,
-      opportunitiesError,
+      workspace.householdsError,
+      workspace.clientsError,
+      workspace.tasksError,
+      workspace.complianceRecordsError,
+      workspace.opportunitiesError,
+      workspace.portfoliosError,
+      workspace.holdingsError,
     ])
   ) {
     return (
       <SchemaSetupRequired description="The dashboard is live, but the WealthFlow tables have not been created in Supabase yet." />
     )
   }
+
+  const workspaceIsEmpty =
+    workspace.households.length === 0 &&
+    workspace.clients.length === 0 &&
+    workspace.allTasks.length === 0 &&
+    workspace.complianceRecords.length === 0 &&
+    workspace.opportunities.length === 0 &&
+    workspace.portfolios.length === 0 &&
+    workspace.holdings.length === 0
+
+  let autoSeedError: string | null = null
+
+  if (user && workspaceIsEmpty) {
+    const seedResult = await seedDemoWorkspaceForUser({
+      email: user.email ?? null,
+      fullName: (user.user_metadata.full_name as string | undefined) ?? null,
+      userId: user.id,
+    })
+
+    if (seedResult.error) {
+      autoSeedError = seedResult.error
+    } else {
+      workspace = await fetchDashboardWorkspace(supabase)
+    }
+  }
+
+  const {
+    allTasks,
+    clients,
+    complianceRecords,
+    holdings,
+    households,
+    opportunities,
+    portfolios,
+  } = workspace
 
   // ─── Compute stats ───
   const totalAum = (households ?? []).reduce((sum, h) => sum + Number(h.total_aum), 0)
@@ -116,6 +174,7 @@ export default async function DashboardPage() {
     { label: "Open Tasks", value: String(openTasks), delta: `${(allTasks ?? []).filter(t => t.status === "done").length} completed`, trend: openTasks > 5 ? "down" as const : "up" as const },
     { label: "Compliance Health", value: `${compliancePercent}%`, delta: `${totalCompliance} records tracked`, trend: compliancePercent >= 70 ? "up" as const : "down" as const },
   ]
+  const hasWorkspaceData = (households?.length ?? 0) > 0 || clientCount > 0
 
   // ─── AUM & Revenue trend (12 months) ───
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -224,6 +283,26 @@ export default async function DashboardPage() {
           </p>
         </div>
       </section>
+
+      {!hasWorkspaceData ? (
+        <section>
+          <Card className="border-amber-200 bg-amber-50/70 shadow-sm">
+            <CardHeader>
+              <CardDescription className="text-amber-700">Workspace Status</CardDescription>
+              <CardTitle className="text-gray-900">No dashboard data is available yet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="max-w-2xl text-sm leading-6 text-gray-600">
+                WealthFlow tried to prepare the demo workspace automatically for this
+                account, but nothing is available to render yet.
+              </p>
+              {autoSeedError ? (
+                <p className="mt-3 text-sm text-red-600">{autoSeedError}</p>
+              ) : null}
+            </CardContent>
+          </Card>
+        </section>
+      ) : null}
 
       {/* ─── STAT CARDS ─── */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

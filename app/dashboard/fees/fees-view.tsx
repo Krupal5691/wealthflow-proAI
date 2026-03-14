@@ -1,7 +1,16 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import {
+  AlertCircleIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  PencilIcon,
+  PlusIcon,
+  ReceiptIcon,
+  Trash2Icon,
+  WalletIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,6 +63,13 @@ const statusTone: Record<string, string> = {
   collected: "bg-emerald-50 text-emerald-700 border-emerald-200",
   overdue: "bg-red-50 text-red-700 border-red-200",
   waived: "bg-gray-50 text-gray-600 border-gray-200",
+}
+
+const frequencyIcon: Record<string, string> = {
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  semi_annual: "Semi-Annual",
+  annual: "Annual",
 }
 
 export function FeesView({
@@ -163,36 +179,64 @@ export function FeesView({
       </Dialog>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-blue-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Total Schedules</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {feeSchedules.length}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50">
+                <WalletIcon className="size-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Schedules</p>
+                <CardTitle className="text-3xl text-gray-900">
+                  {feeSchedules.length}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-violet-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Average Fee</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.avgFeeBps} bps
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-violet-50">
+                <ReceiptIcon className="size-5 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Average Fee</p>
+                <CardTitle className="text-3xl text-gray-900">
+                  {summary.avgFeeBps} <span className="text-lg font-normal text-gray-500">bps</span>
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-emerald-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Collected</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.collectedCount}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50">
+                <CheckCircleIcon className="size-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Collected</p>
+                <CardTitle className="text-3xl text-gray-900">
+                  {summary.collectedCount}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-red-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Overdue</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.overdueCount}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-red-50">
+                <AlertCircleIcon className="size-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Overdue</p>
+                <CardTitle className="text-3xl text-gray-900">
+                  {summary.overdueCount}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
       </div>
@@ -225,58 +269,72 @@ export function FeesView({
       ) : null}
 
       {filteredSchedules.length > 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Household</TableHead>
-                <TableHead>Frequency</TableHead>
-                <TableHead>Fee</TableHead>
-                <TableHead>Last Invoice</TableHead>
-                <TableHead>Next Invoice</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-20">Actions</TableHead>
+              <TableRow className="bg-gray-50/80">
+                <TableHead className="py-3">Household</TableHead>
+                <TableHead className="py-3">Frequency</TableHead>
+                <TableHead className="py-3">Fee</TableHead>
+                <TableHead className="py-3">Last Invoice</TableHead>
+                <TableHead className="py-3">Next Invoice</TableHead>
+                <TableHead className="py-3">Status</TableHead>
+                <TableHead className="w-20 py-3">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSchedules.map((feeSchedule) => (
-                <TableRow key={feeSchedule.id}>
-                  <TableCell className="font-medium text-gray-900">
+                <TableRow key={feeSchedule.id} className="hover:bg-gray-50/50">
+                  <TableCell className="py-3 font-medium text-gray-900">
                     {feeSchedule.households?.name ?? "-"}
                   </TableCell>
-                  <TableCell className="capitalize text-gray-600">
-                    {feeSchedule.billing_frequency.replace("_", " ")}
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-1.5">
+                      <CalendarIcon className="size-3.5 text-gray-400" />
+                      <span className="capitalize text-gray-700">
+                        {frequencyIcon[feeSchedule.billing_frequency] ?? feeSchedule.billing_frequency.replace("_", " ")}
+                      </span>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-gray-900">
-                    {Number(feeSchedule.advisory_fee_bps).toFixed(0)} bps
+                  <TableCell className="py-3">
+                    <span className="font-semibold text-gray-900">
+                      {Number(feeSchedule.advisory_fee_bps).toFixed(0)}
+                    </span>
+                    <span className="ml-1 text-gray-500">bps</span>
                   </TableCell>
-                  <TableCell className="text-gray-600">
+                  <TableCell className="py-3 text-gray-600">
                     {feeSchedule.last_invoice_date
                       ? new Date(feeSchedule.last_invoice_date).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })
-                      : "-"}
+                      : <span className="text-gray-400">-</span>}
                   </TableCell>
-                  <TableCell className="text-gray-600">
+                  <TableCell className="py-3 text-gray-600">
                     {feeSchedule.next_invoice_date
                       ? new Date(feeSchedule.next_invoice_date).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })
-                      : "-"}
+                      : <span className="text-gray-400">-</span>}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     <Badge
                       variant="outline"
                       className={`text-xs capitalize ${statusTone[feeSchedule.collection_status] ?? ""}`}
                     >
+                      {feeSchedule.collection_status === "overdue" && (
+                        <AlertCircleIcon className="mr-1 size-3" />
+                      )}
+                      {feeSchedule.collection_status === "collected" && (
+                        <CheckCircleIcon className="mr-1 size-3" />
+                      )}
                       {feeSchedule.collection_status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
@@ -302,9 +360,21 @@ export function FeesView({
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <p className="text-gray-500">
-            No fee schedules found. Add one to start tracking advisory billing.
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <ReceiptIcon className="size-12 text-gray-300" />
+            <div>
+              <p className="font-medium text-gray-900">No fee schedules found</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Add one to start tracking advisory billing.
+              </p>
+            </div>
+            <Button
+              onClick={() => setAddOpen(true)}
+              className="mt-2 bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <PlusIcon className="mr-1.5 size-4" /> Add Fee Schedule
+            </Button>
+          </div>
         </div>
       )}
     </div>

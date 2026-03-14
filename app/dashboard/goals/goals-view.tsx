@@ -1,7 +1,15 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import {
+  FlagIcon,
+  PencilIcon,
+  PlusIcon,
+  TargetIcon,
+  Trash2Icon,
+  TrendingUpIcon,
+  TrophyIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,10 +58,24 @@ const statusTone: Record<string, string> = {
   paused: "bg-gray-50 text-gray-600 border-gray-200",
 }
 
+const progressBarColor: Record<string, string> = {
+  on_track: "bg-emerald-500",
+  at_risk: "bg-amber-500",
+  off_track: "bg-red-500",
+  achieved: "bg-blue-500",
+  paused: "bg-gray-400",
+}
+
 const priorityTone: Record<string, string> = {
   high: "bg-red-50 text-red-700 border-red-200",
   medium: "bg-amber-50 text-amber-700 border-amber-200",
   low: "bg-gray-50 text-gray-600 border-gray-200",
+}
+
+const priorityDot: Record<string, string> = {
+  high: "bg-red-500",
+  medium: "bg-amber-500",
+  low: "bg-gray-400",
 }
 
 function getProgressPercent(goal: GoalRow) {
@@ -156,30 +178,58 @@ export function GoalsView({
       </Dialog>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-blue-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Total Goals</p>
-            <CardTitle className="text-3xl text-gray-900">{goals.length}</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50">
+                <FlagIcon className="size-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Goals</p>
+                <CardTitle className="text-3xl text-gray-900">{goals.length}</CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-emerald-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">On Track</p>
-            <CardTitle className="text-3xl text-gray-900">{summary.onTrack}</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50">
+                <TrendingUpIcon className="size-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">On Track</p>
+                <CardTitle className="text-3xl text-gray-900">{summary.onTrack}</CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-amber-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Achieved</p>
-            <CardTitle className="text-3xl text-gray-900">{summary.achieved}</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50">
+                <TrophyIcon className="size-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Achieved</p>
+                <CardTitle className="text-3xl text-gray-900">{summary.achieved}</CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
+        <Card className="group border-l-4 border-gray-200 border-l-violet-500 bg-white shadow-sm transition-shadow hover:shadow-md">
           <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Target Corpus</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {formatCompactCurrency(summary.totalTarget)}
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-violet-50">
+                <TargetIcon className="size-5 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Target Corpus</p>
+                <CardTitle className="text-3xl text-gray-900">
+                  {formatCompactCurrency(summary.totalTarget)}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
         </Card>
       </div>
@@ -216,13 +266,14 @@ export function GoalsView({
           {filteredGoals.map((goal) => {
             const progressPercent = getProgressPercent(goal)
             const targetRemaining = Math.max(0, Number(goal.target_amount) - Number(goal.current_amount))
+            const barColor = progressBarColor[goal.status] ?? "bg-blue-600"
 
             return (
-              <div key={goal.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div key={goal.id} className="group rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-gray-900">{goal.title}</p>
+                      <p className="text-base font-semibold text-gray-900">{goal.title}</p>
                       <Badge
                         variant="outline"
                         className={`text-xs capitalize ${statusTone[goal.status] ?? ""}`}
@@ -233,14 +284,15 @@ export function GoalsView({
                         variant="outline"
                         className={`text-xs capitalize ${priorityTone[goal.priority] ?? ""}`}
                       >
+                        <span className={`mr-1 inline-block size-1.5 rounded-full ${priorityDot[goal.priority] ?? "bg-gray-400"}`} />
                         {goal.priority}
                       </Badge>
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                       <span>{goal.households?.name ?? "-"}</span>
-                      <span>Target {formatCompactCurrency(Number(goal.target_amount))}</span>
-                      <span>Current {formatCompactCurrency(Number(goal.current_amount))}</span>
-                      <span>Remaining {formatCompactCurrency(targetRemaining)}</span>
+                      <span>Target <span className="font-medium text-gray-700">{formatCompactCurrency(Number(goal.target_amount))}</span></span>
+                      <span>Current <span className="font-medium text-gray-700">{formatCompactCurrency(Number(goal.current_amount))}</span></span>
+                      <span>Remaining <span className="font-medium text-gray-700">{formatCompactCurrency(targetRemaining)}</span></span>
                       {goal.target_date ? (
                         <span>
                           Due{" "}
@@ -252,14 +304,22 @@ export function GoalsView({
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-3">
-                      <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
-                        <span>Progress</span>
-                        <span>{progressPercent}%</span>
+                    <div className="mt-4">
+                      <div className="mb-1.5 flex items-center justify-between text-sm">
+                        <span className="text-gray-500">Progress</span>
+                        <span className={`text-lg font-bold ${
+                          goal.status === "achieved" ? "text-blue-600" :
+                          goal.status === "on_track" ? "text-emerald-600" :
+                          goal.status === "at_risk" ? "text-amber-600" :
+                          goal.status === "off_track" ? "text-red-600" :
+                          "text-gray-600"
+                        }`}>
+                          {progressPercent}%
+                        </span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                      <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-blue-600"
+                          className={`h-full rounded-full transition-all ${barColor}`}
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
@@ -289,9 +349,21 @@ export function GoalsView({
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <p className="text-gray-500">
-            No goals found. Add one to start tracking planning outcomes.
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <TargetIcon className="size-12 text-gray-300" />
+            <div>
+              <p className="font-medium text-gray-900">No goals found</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Add one to start tracking planning outcomes.
+              </p>
+            </div>
+            <Button
+              onClick={() => setAddOpen(true)}
+              className="mt-2 bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <PlusIcon className="mr-1.5 size-4" /> Add Goal
+            </Button>
+          </div>
         </div>
       )}
     </div>

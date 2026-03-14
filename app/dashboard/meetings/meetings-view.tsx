@@ -1,15 +1,23 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { Clock3Icon, MapPinIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import {
+  CalendarIcon,
+  CalendarCheckIcon,
+  Clock3Icon,
+  ClockIcon,
+  MapPinIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+  VideoIcon,
+  UsersIcon,
+  PhoneIcon,
+  CalendarDaysIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +49,13 @@ type MeetingRow = {
 
 const filters = ["all", "upcoming", "today", "past"] as const
 
+const meetingTypeConfig: Record<string, { icon: typeof VideoIcon; color: string }> = {
+  video_call: { icon: VideoIcon, color: "bg-blue-50 text-blue-700 border-blue-200" },
+  phone_call: { icon: PhoneIcon, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  in_person: { icon: UsersIcon, color: "bg-violet-50 text-violet-700 border-violet-200" },
+  review: { icon: CalendarCheckIcon, color: "bg-amber-50 text-amber-700 border-amber-200" },
+}
+
 function isToday(dateValue: string) {
   const date = new Date(dateValue)
   const now = new Date()
@@ -56,6 +71,22 @@ function isPastMeeting(meeting: MeetingRow) {
   const endDate = meeting.ends_at ? new Date(meeting.ends_at) : new Date(meeting.starts_at)
 
   return endDate < new Date()
+}
+
+function formatTime(dateStr: string) {
+  return new Date(dateStr).toLocaleString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
 }
 
 export function MeetingsView({
@@ -115,6 +146,13 @@ export function MeetingsView({
     })
   }
 
+  const statCards = [
+    { label: "Total Meetings", count: meetings.length, icon: CalendarIcon, bg: "bg-blue-50", iconColor: "text-blue-600", border: "border-l-blue-500" },
+    { label: "Upcoming", count: summary.upcomingCount, icon: ClockIcon, bg: "bg-violet-50", iconColor: "text-violet-600", border: "border-l-violet-500" },
+    { label: "Today", count: summary.todayCount, icon: CalendarDaysIcon, bg: "bg-amber-50", iconColor: "text-amber-600", border: "border-l-amber-500" },
+    { label: "Completed", count: summary.pastCount, icon: CalendarCheckIcon, bg: "bg-emerald-50", iconColor: "text-emerald-600", border: "border-l-emerald-500" },
+  ]
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -165,62 +203,50 @@ export function MeetingsView({
         </DialogContent>
       </Dialog>
 
+      {/* Summary Stat Cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Total Meetings</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {meetings.length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Upcoming</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.upcomingCount}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Today</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.todayCount}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader className="pb-2">
-            <p className="text-sm text-gray-500">Past</p>
-            <CardTitle className="text-3xl text-gray-900">
-              {summary.pastCount}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+        {statCards.map((card) => {
+          const Icon = card.icon
+          return (
+            <div
+              key={card.label}
+              className={`group flex items-center gap-4 rounded-xl border border-gray-200 border-l-4 ${card.border} bg-white p-4 shadow-sm transition-shadow hover:shadow-md`}
+            >
+              <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${card.bg}`}>
+                <Icon className={`size-5 ${card.iconColor}`} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{card.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{card.count}</p>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
+      {/* Filter Pills */}
       <div className="mb-4 flex flex-wrap gap-2">
         {filters.map((filterKey) => (
           <button
             key={filterKey}
             type="button"
             onClick={() => setFilter(filterKey)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition-all ${
               filter === filterKey
-                ? "bg-blue-50 text-blue-700"
+                ? "bg-gray-900 text-white shadow-sm"
                 : "text-gray-500 hover:bg-gray-100"
             }`}
           >
-            {filterKey === "all" ? "All" : filterKey} (
-            {filterKey === "all"
-              ? meetings.length
-              : filterKey === "today"
-                ? summary.todayCount
-                : filterKey === "past"
-                  ? summary.pastCount
-                  : summary.upcomingCount}
-            )
+            {filterKey === "all" ? "All" : filterKey}
+            <span className={`ml-0.5 text-xs ${filter === filterKey ? "opacity-80" : "opacity-60"}`}>
+              {filterKey === "all"
+                ? meetings.length
+                : filterKey === "today"
+                  ? summary.todayCount
+                  : filterKey === "past"
+                    ? summary.pastCount
+                    : summary.upcomingCount}
+            </span>
           </button>
         ))}
       </div>
@@ -231,68 +257,81 @@ export function MeetingsView({
         </div>
       ) : null}
 
+      {/* Meeting Cards */}
       {filteredMeetings.length > 0 ? (
         <div className="space-y-3">
           {filteredMeetings.map((meeting) => {
             const past = isPastMeeting(meeting)
+            const typeConfig = meetingTypeConfig[meeting.meeting_type]
+            const TypeIcon = typeConfig?.icon ?? CalendarIcon
 
             return (
               <div
                 key={meeting.id}
-                className={`rounded-xl border bg-white p-4 shadow-sm ${
-                  past ? "border-gray-200" : "border-blue-200"
+                className={`group rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+                  past ? "border-gray-200" : "border-l-4 border-l-blue-500 border-gray-200"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-gray-900">{meeting.subject}</p>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {meeting.meeting_type.replace("_", " ")}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${past ? "" : "text-blue-700"}`}
-                      >
-                        {past ? "Completed" : "Upcoming"}
-                      </Badge>
+                  <div className="flex gap-3">
+                    <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${past ? "bg-gray-100" : "bg-blue-50"}`}>
+                      <TypeIcon className={`size-5 ${past ? "text-gray-400" : "text-blue-600"}`} />
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                      <span>{meeting.households?.name ?? "No household"}</span>
-                      <span className="inline-flex items-center gap-1">
-                        <Clock3Icon className="size-4" />
-                        {new Date(meeting.starts_at).toLocaleString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                        {meeting.ends_at
-                          ? ` - ${new Date(meeting.ends_at).toLocaleString("en-IN", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}`
-                          : ""}
-                      </span>
-                      {meeting.location ? (
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className={`font-medium ${past ? "text-gray-500" : "text-gray-900"}`}>{meeting.subject}</p>
+                        <Badge
+                          variant="outline"
+                          className={`inline-flex items-center gap-1 text-xs capitalize ${typeConfig?.color ?? ""}`}
+                        >
+                          <TypeIcon className="size-3" />
+                          {meeting.meeting_type.replace("_", " ")}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${past ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}
+                        >
+                          {past ? "Completed" : "Upcoming"}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        {meeting.households?.name && (
+                          <span className="inline-flex items-center gap-1">
+                            <UsersIcon className="size-3.5 text-gray-400" />
+                            {meeting.households.name}
+                          </span>
+                        )}
+                        {!meeting.households?.name && (
+                          <span className="text-gray-400">No household</span>
+                        )}
                         <span className="inline-flex items-center gap-1">
-                          <MapPinIcon className="size-4" />
-                          {meeting.location}
+                          <CalendarIcon className="size-3.5 text-gray-400" />
+                          {formatDate(meeting.starts_at)}
                         </span>
+                        <span className="inline-flex items-center gap-1 font-medium text-gray-700">
+                          <Clock3Icon className="size-3.5 text-gray-400" />
+                          {formatTime(meeting.starts_at)}
+                          {meeting.ends_at ? ` - ${formatTime(meeting.ends_at)}` : ""}
+                        </span>
+                        {meeting.location ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPinIcon className="size-3.5 text-gray-400" />
+                            {meeting.location}
+                          </span>
+                        ) : null}
+                      </div>
+                      {meeting.notes ? (
+                        <p className="mt-3 text-sm leading-6 text-gray-500 line-clamp-2">
+                          {meeting.notes}
+                        </p>
                       ) : null}
                     </div>
-                    {meeting.notes ? (
-                      <p className="mt-3 text-sm leading-6 text-gray-500">
-                        {meeting.notes}
-                      </p>
-                    ) : null}
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => setEditMeeting(meeting)}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                     >
                       <PencilIcon className="size-4" />
                     </button>
@@ -300,7 +339,7 @@ export function MeetingsView({
                       type="button"
                       onClick={() => handleDelete(meeting.id)}
                       disabled={deletingId === meeting.id}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2Icon className="size-4" />
                     </button>
@@ -312,9 +351,15 @@ export function MeetingsView({
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <p className="text-gray-500">
-            No meetings found. Schedule one to start tracking advisor activity.
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex size-12 items-center justify-center rounded-full bg-gray-100">
+              <CalendarIcon className="size-6 text-gray-400" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">No meetings found</p>
+              <p className="mt-1 text-sm text-gray-500">Schedule one to start tracking advisor activity.</p>
+            </div>
+          </div>
         </div>
       )}
     </div>

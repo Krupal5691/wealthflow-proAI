@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { BriefcaseIcon, DollarSignIcon, PlusIcon, TargetIcon, Trash2Icon, TrendingUpIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,13 +54,13 @@ const stages = [
   "lost",
 ] as const
 
-const stageConfig: Record<string, { label: string; color: string }> = {
-  qualifying: { label: "Qualifying", color: "bg-gray-100 text-gray-700" },
-  proposal: { label: "Proposal", color: "bg-blue-50 text-blue-700" },
-  diligence: { label: "Due Diligence", color: "bg-amber-50 text-amber-700" },
-  commitment: { label: "Commitment", color: "bg-emerald-50 text-emerald-700" },
-  won: { label: "Won", color: "bg-green-50 text-green-700" },
-  lost: { label: "Lost", color: "bg-red-50 text-red-700" },
+const stageConfig: Record<string, { label: string; color: string; headerBg: string; headerText: string; borderColor: string; barColor: string; dotColor: string }> = {
+  qualifying: { label: "Qualifying", color: "bg-gray-100 text-gray-700", headerBg: "bg-slate-50", headerText: "text-slate-700", borderColor: "border-t-slate-400", barColor: "bg-slate-400", dotColor: "bg-slate-400" },
+  proposal: { label: "Proposal", color: "bg-blue-50 text-blue-700", headerBg: "bg-blue-50", headerText: "text-blue-700", borderColor: "border-t-blue-500", barColor: "bg-blue-500", dotColor: "bg-blue-500" },
+  diligence: { label: "Due Diligence", color: "bg-amber-50 text-amber-700", headerBg: "bg-amber-50", headerText: "text-amber-700", borderColor: "border-t-amber-500", barColor: "bg-amber-500", dotColor: "bg-amber-500" },
+  commitment: { label: "Commitment", color: "bg-purple-50 text-purple-700", headerBg: "bg-purple-50", headerText: "text-purple-700", borderColor: "border-t-purple-500", barColor: "bg-purple-500", dotColor: "bg-purple-500" },
+  won: { label: "Won", color: "bg-emerald-50 text-emerald-700", headerBg: "bg-emerald-50", headerText: "text-emerald-700", borderColor: "border-t-emerald-500", barColor: "bg-emerald-500", dotColor: "bg-emerald-500" },
+  lost: { label: "Lost", color: "bg-red-50 text-red-700", headerBg: "bg-red-50", headerText: "text-red-700", borderColor: "border-t-red-500", barColor: "bg-red-400", dotColor: "bg-red-400" },
 }
 
 export function PipelineView({
@@ -95,6 +95,10 @@ export function PipelineView({
       sum + Number(opportunity.expected_value) * (opportunity.probability / 100),
     0,
   )
+  const wonDeals = opportunities.filter(o => o.stage === "won").length
+  const closedDeals = opportunities.filter(o => o.stage === "won" || o.stage === "lost").length
+  const winRate = closedDeals > 0 ? Math.round((wonDeals / closedDeals) * 100) : 0
+  const avgDealSize = opportunities.length > 0 ? totalValue / opportunities.length : 0
 
   async function handleCreate(formData: FormData) {
     setError(null)
@@ -253,6 +257,62 @@ export function PipelineView({
         </Dialog>
       </div>
 
+      {/* Summary Stats Row */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+        <Card className="group border-gray-200 border-l-4 border-l-blue-500 bg-white shadow-sm hover:shadow-md transition-all">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                <BriefcaseIcon className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Pipeline</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCompactCurrency(totalValue)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="group border-gray-200 border-l-4 border-l-emerald-500 bg-white shadow-sm hover:shadow-md transition-all">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                <TrendingUpIcon className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Weighted Value</p>
+                <p className="text-2xl font-bold text-emerald-600">{formatCompactCurrency(weightedValue)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="group border-gray-200 border-l-4 border-l-amber-500 bg-white shadow-sm hover:shadow-md transition-all">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                <TargetIcon className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Win Rate</p>
+                <p className="text-2xl font-bold text-amber-600">{winRate}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="group border-gray-200 border-l-4 border-l-purple-500 bg-white shadow-sm hover:shadow-md transition-all">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                <DollarSignIcon className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Avg Deal Size</p>
+                <p className="text-2xl font-bold text-purple-600">{formatCompactCurrency(avgDealSize)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {error ? (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
@@ -265,17 +325,20 @@ export function PipelineView({
           const items = grouped[stage]
 
           return (
-            <Card key={stage} className="border-gray-200 bg-white shadow-sm">
-              <CardHeader>
+            <Card key={stage} className={`border-gray-200 border-t-4 ${config.borderColor} bg-white shadow-sm hover:shadow-md transition-all`}>
+              <CardHeader className={`${config.headerBg} rounded-t-none`}>
                 <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base text-gray-900">
-                    {config.label}
-                  </CardTitle>
-                  <Badge variant="outline" className={`text-xs ${config.color}`}>
+                  <div className="flex items-center gap-2">
+                    <div className={`size-2 rounded-full ${config.dotColor}`} />
+                    <CardTitle className={`text-base ${config.headerText}`}>
+                      {config.label}
+                    </CardTitle>
+                  </div>
+                  <Badge variant="outline" className={`text-xs font-semibold ${config.color}`}>
                     {items.length}
                   </Badge>
                 </div>
-                <CardDescription>
+                <CardDescription className="font-medium">
                   {formatCompactCurrency(
                     items.reduce(
                       (sum, opportunity) => sum + Number(opportunity.expected_value),
@@ -290,7 +353,7 @@ export function PipelineView({
                   items.map((opportunity) => (
                     <div
                       key={opportunity.id}
-                      className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+                      className="group/card rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-all"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -305,30 +368,39 @@ export function PipelineView({
                           type="button"
                           onClick={() => handleDelete(opportunity.id)}
                           disabled={deletingId === opportunity.id}
-                          className="rounded-md p-1 text-gray-300 hover:bg-red-50 hover:text-red-500"
+                          className="rounded-md p-1 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
                         >
                           <Trash2Icon className="size-4" />
                         </button>
                       </div>
 
                       <div className="mt-3 flex items-center justify-between gap-3">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-lg font-bold text-gray-900">
                           {formatCompactCurrency(Number(opportunity.expected_value))}
                         </span>
-                        <span className="text-xs text-gray-500">
-                          {opportunity.probability}% prob.
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          opportunity.probability >= 75
+                            ? "bg-emerald-50 text-emerald-700"
+                            : opportunity.probability >= 50
+                              ? "bg-blue-50 text-blue-700"
+                              : opportunity.probability >= 25
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-gray-100 text-gray-600"
+                        }`}>
+                          {opportunity.probability}%
                         </span>
                       </div>
 
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-blue-600"
+                          className={`h-full rounded-full transition-all ${config.barColor}`}
                           style={{ width: `${opportunity.probability}%` }}
                         />
                       </div>
 
                       {opportunity.target_close_date ? (
-                        <p className="mt-2 text-xs text-gray-400">
+                        <p className="mt-2 flex items-center gap-1 text-xs text-gray-400">
+                          <span className="inline-block size-1 rounded-full bg-gray-300" />
                           Close by{" "}
                           {new Date(opportunity.target_close_date).toLocaleDateString(
                             "en-IN",
@@ -341,7 +413,7 @@ export function PipelineView({
                       ) : null}
 
                       {opportunity.notes ? (
-                        <p className="mt-2 text-xs leading-5 text-gray-500">
+                        <p className="mt-2 text-xs leading-5 text-gray-500 line-clamp-2">
                           {opportunity.notes}
                         </p>
                       ) : null}
@@ -352,7 +424,7 @@ export function PipelineView({
                           onChange={(event) =>
                             handleStageChange(opportunity.id, event.target.value)
                           }
-                          className="w-full rounded-md border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium text-gray-700"
+                          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
                         >
                           {stages.map((stageOption) => (
                             <option key={stageOption} value={stageOption}>
@@ -364,9 +436,14 @@ export function PipelineView({
                     </div>
                   ))
                 ) : (
-                  <p className="rounded-lg border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">
-                    No opportunities in this stage.
-                  </p>
+                  <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-200 py-8 text-center">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+                      <BriefcaseIcon className="size-5" />
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      No opportunities in this stage.
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
